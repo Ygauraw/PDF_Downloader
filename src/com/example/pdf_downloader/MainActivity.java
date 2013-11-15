@@ -7,6 +7,9 @@ import org.xml.sax.Parser;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -17,21 +20,23 @@ import android.widget.ProgressBar;
 public class MainActivity extends Activity {
 
 	public static String logTag = "PDF_Downloader";
+	public static final int progress_bar_type = 0;
 	
 	private Button   goToUrlBtn  = null;
 	private EditText urlTextEdit = null;
-	private ProgressBar progressBar = null;
-
+	private ProgressDialog pDialog = null;
+	private Context ctx;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		ctx = this;
+		
 		setContentView(R.layout.activity_main);
 		
 		goToUrlBtn  = (Button) findViewById(R.id.goToUrlBtnId);
 		urlTextEdit = (EditText) findViewById(R.id.urlTextEditId);
-		progressBar = (ProgressBar) findViewById(R.id.webPageDownloadProgressBarId);
 		
 		goToUrlBtn.setOnClickListener(new View.OnClickListener() {
 			
@@ -42,27 +47,8 @@ public class MainActivity extends Activity {
 				
 				disableUIComponents();
 				
-				AsyncDownloader downloader = new AsyncDownloader(progressBar, true);
+				AsyncDownloader downloader = new AsyncDownloader(pDialog, true, MainActivity.this, ctx);
 				downloader.execute(urlString);
-				
-				UrlParser parser = new UrlParser();
-				List<String> matches = parser.parse();
-				
-				if ( matches.size() > 0) {
-					Log.d(logTag, "Number of matches is " + matches.size());
-					// Deploy new Activity
-				} else {
-					// 1. Instantiate an AlertDialog.Builder with its constructor
-					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-
-					// 2. Chain together various setter methods to set the dialog characteristics
-					builder.setMessage("LOL")
-					       .setTitle("DUPA");
-
-					// 3. Get the AlertDialog from create()
-					AlertDialog dialog = builder.create();
-					Log.d(logTag, "No matches, do nothing");
-				}
 				
 				enableUIComponents();
 				
@@ -70,6 +56,7 @@ public class MainActivity extends Activity {
 		});
 		
 	}
+	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

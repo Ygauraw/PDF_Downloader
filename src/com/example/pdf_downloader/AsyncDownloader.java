@@ -1,11 +1,20 @@
 package com.example.pdf_downloader;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
@@ -14,32 +23,78 @@ import android.widget.ProgressBar;
 
 public class AsyncDownloader extends AsyncTask<String, String, String> {
 
-	private ProgressBar progressBarHandler;
-	private Boolean saveAsTmpFile;
+	public static final int progress_bar_type = 0; 
 	
-	public AsyncDownloader(ProgressBar id, Boolean isTemp) {
+	private ProgressDialog pDialog;
+	private Activity mainActivity;
+	private Boolean saveAsTmpFile;
+	private String downloadedFile;
+	private Context ctx;
+	
+	public AsyncDownloader(ProgressDialog id, Boolean isTemp, Activity mainActivity, Context ctx) {
 		super();
 		this.saveAsTmpFile = isTemp;
-		this.progressBarHandler = id;
+		this.pDialog = id;
+		this.mainActivity = mainActivity;
+		this.ctx = ctx;
 	}
 	
 	@Override
 	protected void onPostExecute(String result) {
-		progressBarHandler.setVisibility(ProgressBar.VISIBLE);
-		progressBarHandler.setProgress((int)100);
+		pDialog.dismiss();
+		if (saveAsTmpFile == true ) {
+			// We downloaded regular html file, therefore we parse and run listview activity
+			UrlParser parser = new UrlParser();
+			List<String> matches = parser.parse();
+			
+			if ( matches.size() > 0) {
+				Log.d(MainActivity.logTag, "Number of matches is " + matches.size());
+				// Deploy new Activity
+			} else {
+				// 1. Instantiate an AlertDialog.Builder with its constructor
+				AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+	
+				// 2. Chain together various setter methods to set the dialog characteristics
+				builder.setMessage("No PDF links were found.")
+				       .setTitle("Sorry...");
+	
+				// 3. Get the AlertDialog from create()
+				AlertDialog dialog = builder.create();
+				dialog.show();
+				Log.d(MainActivity.logTag, "No matches, do nothing");
+			}
+			
+			Intent intent = new Intent(mainActivity, ListViewActivity.class);
+			intent.putExtra("links", new String[] {
+				"http://ec.europa.eu/education/policies/educ/bologna/bologna.pdf",
+				"http://www.mcesr.public.lu/enssup/dossiers/bologne/processus_bologne.pdf"
+			});
+			mainActivity.startActivity(intent);
+			
+		} else {
+			//We downloaded pdf therefore we run new intent with pdf file
+			File file = new File(downloadedFile);
+			Intent intent = new Intent(Intent.ACTION_VIEW);
+	        intent.setDataAndType(Uri.fromFile(file),"application/pdf");
+	        intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+	        //mainActivity.startActivity(intent);
+		}
 		super.onPostExecute(result);
 	}
 
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
-		progressBarHandler.setVisibility(ProgressBar.VISIBLE);
-		progressBarHandler.setProgress((int)0);
+		pDialog = ProgressDialog.show(ctx, "Please wait....", "Downloading...");
+//		pDialog.setTitle("Downloading...");
+//		pDialog.setMessage("Please wait.");
+//		pDialog.setCancelable(false);
+//		pDialog.show();
 	}
 	
 	@Override
 	protected void onProgressUpdate(String... values) {
-		progressBarHandler.setProgress(Integer.parseInt(values[0]));
+		//pDialog.setProgress(Integer.parseInt(values[0]));
 		super.onProgressUpdate(values);
 	}
 
@@ -48,7 +103,7 @@ public class AsyncDownloader extends AsyncTask<String, String, String> {
 		int count;
         try {
         	String storagePath = Environment.getExternalStorageDirectory().getPath();
-        	
+        	        	
             URL url = new URL(args[0]);
             URLConnection conection = url.openConnection();
             conection.connect();
@@ -63,12 +118,16 @@ public class AsyncDownloader extends AsyncTask<String, String, String> {
             
             // Output stream to write file
             if ( saveAsTmpFile == true) {
-            	output = new FileOutputStream( storagePath + "/temp_web.tmp", false);
+            	downloadedFile = storagePath + "/temp_web.tmp";
             } else {
                 String urlString = url.toString();
                 String fileName = urlString.substring( urlString.lastIndexOf('/')+1, urlString.length() );
-            	output = new FileOutputStream( storagePath + fileName , false);
-           	}
+                downloadedFile = storagePath + "/" + fileName;
+            }
+            
+            output = new FileOutputStream(downloadedFile, false);
+            
+            
             byte data[] = new byte[1024];
  
             long total = 0;

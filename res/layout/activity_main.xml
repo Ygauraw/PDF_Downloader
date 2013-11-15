@@ -20,6 +20,7 @@
 
     <EditText
         android:id="@+id/urlTextEditId"
+        android:text ="@string/defaultAddress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/goToUrlLabel"
@@ -36,14 +37,5 @@
         android:layout_marginTop="27dp"
         android:text="@string/go_to_url_btn" />
 
-    <ProgressBar
-        android:id="@+id/webPageDownloadProgressBarId"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:visibility="invisible"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/goToUrlBtnId"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="73dp" />
 
 </RelativeLayout>
