@@ -47,9 +47,9 @@ public class AsyncDownloader extends AsyncTask<String, String, String> {
 			UrlParser parser = new UrlParser();
 			List<String> matches = parser.parse();
 			
+			
 			if ( matches.size() > 0) {
 				Log.d(MainActivity.logTag, "Number of matches is " + matches.size());
-				// Deploy new Activity
 			} else {
 				// 1. Instantiate an AlertDialog.Builder with its constructor
 				AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
@@ -62,13 +62,11 @@ public class AsyncDownloader extends AsyncTask<String, String, String> {
 				AlertDialog dialog = builder.create();
 				dialog.show();
 				Log.d(MainActivity.logTag, "No matches, do nothing");
+				return;
 			}
 			
 			Intent intent = new Intent(mainActivity, ListViewActivity.class);
-			intent.putExtra("links", new String[] {
-				"http://ec.europa.eu/education/policies/educ/bologna/bologna.pdf",
-				"http://www.mcesr.public.lu/enssup/dossiers/bologne/processus_bologne.pdf"
-			});
+			intent.putExtra("links", matches.toArray(new String[0]));
 			mainActivity.startActivity(intent);
 			
 		} else {
@@ -77,7 +75,7 @@ public class AsyncDownloader extends AsyncTask<String, String, String> {
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 	        intent.setDataAndType(Uri.fromFile(file),"application/pdf");
 	        intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-	        //mainActivity.startActivity(intent);
+	        mainActivity.startActivity(intent);
 		}
 		super.onPostExecute(result);
 	}
