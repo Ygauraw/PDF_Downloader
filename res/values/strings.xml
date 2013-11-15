@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">PDF Downloader</string>
+    <string name="action_settings">Settings</string>
+    <string name="insert_url_label">Insert URL</string>
+    <string name="go_to_url_btn">Go!</string>
+    <string name="title_activity_list_view">ListViewActivity</string>
+    <string name="hello_world">Hello world!</string>
+
+</resources>
